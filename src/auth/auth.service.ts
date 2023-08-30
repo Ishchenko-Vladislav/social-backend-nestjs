@@ -68,18 +68,14 @@ export class AuthService {
     // }
     const decoded = await this.verifyRefreshJwtToken(token);
     const payload = { email: decoded.email, sub: decoded.sub };
+
+    const isExist = await this.userService.findOne(payload.email);
+    if (!isExist) return new UnauthorizedException();
     const tokens = await this.getNewTokens(payload);
     // await this.setRefreshTokenToCookie(response, tokens.refresh_token);
     // console.log('again refresh');
     return tokens;
   }
-
-  // async logout(response: Response, req: Request) {
-  //   response.clearCookie('refresh_token', {
-  //     // path: '/api/auth/v1/secret/refresh',
-  //   });
-  //   return { success: true };
-  // }
 
   private async verifyRefreshJwtToken(token: string): Promise<IJwtPayload> {
     try {
@@ -96,7 +92,7 @@ export class AuthService {
     const [at, rt] = await Promise.all([
       this.jwtService.signAsync(payload, {
         secret: await this.configService.get('JWT_SECRET'),
-        expiresIn: '10s',
+        expiresIn: '1h',
       }),
       this.jwtService.signAsync(payload, {
         secret: await this.configService.get('JWT_REFRESH_SECRET'),
@@ -108,20 +104,4 @@ export class AuthService {
       refresh_token: rt,
     };
   }
-
-  // private async setRefreshTokenToCookie(response: Response, token: string) {
-  //   // response.setHeader('Access-Control-Allow-Origin', '*');
-  //   // response.setHeader('Access-Control-Allow-Credentials', true);
-  //   // response.setHeader('Access-Control-Allow-Headers', '*');
-
-  //   response.cookie('refresh_token', token, {
-  //     httpOnly: false,
-  //     // secure: (await this.configService.get('DEVELOPMENT_MODE')) !== 'dev',
-  //     secure: false,
-  //     // path: '/api/auth/v1/secret/refresh',
-  //     // maxAge: 1000 * 60 * 60 * 24 * 7, //24 * 60 * 60 * 1000
-  //     sameSite: 'lax',
-  //     // domain: 'localhost',
-  //   });
-  // }
 }

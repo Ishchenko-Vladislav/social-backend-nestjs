@@ -59,7 +59,12 @@ export class AuthController {
     @Res({ passthrough: true }) response: Response,
     @Body() payload: { refresh_token: string },
   ) {
-    console.log('I TRY GET TOKEN', payload.refresh_token);
+    // console.log('I TRY GET TOKEN', payload.refresh_token);
     return this.authService.refreshToken(payload.refresh_token, response);
+  }
+
+  @Get('status')
+  status() {
+    return { status: true };
   }
 }

@@ -8,6 +8,7 @@ import {
   JoinTable,
   JoinColumn,
   ManyToOne,
+  PrimaryGeneratedColumn,
 } from 'typeorm';
 import { SubscriptionEntity } from './follower.entity';
 import { ConversationEntity } from 'src/conversation/entities/conversation.entity';
@@ -23,11 +24,8 @@ export class UserEntity extends Base {
   @Column({ default: '', name: 'user_name' })
   userName: string;
 
-  @Column({ default: '', name: 'first_name' })
-  firstName: string;
-
-  @Column({ default: '', name: 'last_name' })
-  lastName: string;
+  @Column({ name: 'display_name', unique: true })
+  displayName: string;
 
   @Column({ default: '', select: false })
   password: string;

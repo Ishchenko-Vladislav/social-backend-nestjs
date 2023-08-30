@@ -29,7 +29,14 @@ export class UserService {
     if (isExist) throw new BadRequestException('This email already exist');
     const hashPassword = await hash(createUserDto.password, 12);
 
+    const userName =
+      '@' +
+      createUserDto.displayName +
+      Math.random().toString(36).substring(2, 8) +
+      Math.random().toString(36).substring(2, 8);
     const user = await this.userRepository.save({
+      userName,
+      displayName: createUserDto.displayName,
       email: createUserDto.email,
       password: hashPassword,
     });
