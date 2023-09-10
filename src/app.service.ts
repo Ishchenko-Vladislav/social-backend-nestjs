@@ -26,9 +26,18 @@ export class AppService {
       const tags = await this.hashtagRepository
         .createQueryBuilder('tag')
         .leftJoin('tag.posts', 'post')
-        .addSelect('COUNT(post.id)', 'postCount') // Подсчитываем количество постов и даем ему псевдоним postCount
+        // .alias
+        .select([
+          'COUNT(post.id) AS postCount',
+          'tag.id AS id',
+          'tag.name AS name',
+        ])
+        // .addSelect('tag.name')
+        // .select('tag.name')
+        // .addSelect('COUNT(post.id)', 'postCount') // Подсчитываем количество постов и даем ему псевдоним postCount
         .where('tag.name ILIKE :name', { name: `%${searchTerm}%` })
-        .groupBy('tag.id, post.id') // Группируем по ID тега, чтобы получить правильные счетчики
+        // .groupBy('tag.id, post.id') // Группируем по ID тега, чтобы получить правильные счетчики
+        .groupBy('tag.id')
         .getRawMany(); // Получаем результаты в виде "сырых" данных
       // .getMany();
       //   const tags = await this.hashtagRepository
