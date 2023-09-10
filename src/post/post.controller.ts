@@ -22,8 +22,18 @@ export class PostController {
   getAllPosts() {
     return this.postService.getAllPosts();
   }
-  @Get('my-posts')
+  @Get('all-hashtags')
+  getAllHashtags() {
+    return this.postService.getAllHashtags();
+  }
+
+  @Get('my/posts')
   getAllMyPosts() {}
+
+  @Get('my/following/posts')
+  getFollowingPosts(@Req() req: AuthenticatedRequest) {
+    return this.postService.getFollowingPosts(req.user.id);
+  }
 
   @Put(':postId/like')
   likePost(@Req() req: AuthenticatedRequest, @Param('postId') postId: string) {
@@ -38,7 +48,16 @@ export class PostController {
     return this.postService.deletePost(req.user.id, postId);
   }
 
-  @Post()
+  @Patch(':postId')
+  updatePost(
+    @Req() req: AuthenticatedRequest,
+    @Param('postId') postId: string,
+    @Body() updatePostDto: UpdatePostDto,
+  ) {
+    return this.postService.updatePost(req.user.id, postId, updatePostDto);
+  }
+
+  @Post('create')
   createPost(
     @Req() req: AuthenticatedRequest,
     @Body() createPostDto: CreatePostDto,

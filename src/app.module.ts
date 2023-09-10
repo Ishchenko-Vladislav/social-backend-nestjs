@@ -1,5 +1,5 @@
 import { Module } from '@nestjs/common';
-import { AppController } from './app.controller';
+// import { AppController } from './AppController';
 import { AppService } from './app.service';
 import { UserModule } from './user/user.module';
 import { ConfigModule, ConfigService } from '@nestjs/config';
@@ -13,6 +13,9 @@ import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { JwtStrategy } from './auth/strategies/jwt.strategy';
 import { ConversationModule } from './conversation/conversation.module';
+import { AppController } from './app.controller';
+import { UserEntity } from './user/entities/user.entity';
+import { HashtagEntity } from './post/entities/hashtag.entity';
 
 @Module({
   imports: [
@@ -38,6 +41,7 @@ import { ConversationModule } from './conversation/conversation.module';
       inject: [ConfigService],
     }),
     ConversationModule,
+    TypeOrmModule.forFeature([UserEntity, HashtagEntity]),
   ],
   controllers: [AppController],
   providers: [

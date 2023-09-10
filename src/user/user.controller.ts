@@ -11,6 +11,7 @@ import {
   UseGuards,
   Request,
   Req,
+  Query,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -39,9 +40,24 @@ export class UserController {
   // @UseGuards(JwtAuthGuard)
   @Get('profile')
   // @Public()
-  getProfile(@Request() req) {
+  getOwnProfile(@Req() req: AuthenticatedRequest) {
     // return req.user;
-    return this.userService.findOne(req.user.email);
+    // return this.userService.findOne(req.user.email);
+    return this.userService.getUserWithFollowerCount(req.user.id);
+  }
+  @Get('profile/:userId')
+  getProfile(
+    @Req() req: AuthenticatedRequest,
+    @Param('userId') userId: string,
+  ) {
+    // return req.user;
+    // return this.userService.findOne(req.user.email);
+    return this.userService.getProfile(userId);
+  }
+
+  @Get('search')
+  searchByUserName(@Query('searchTerm') searchTerm?: string) {
+    return this.userService.search(searchTerm);
   }
 
   @Get('all')

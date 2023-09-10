@@ -6,6 +6,9 @@ import { UserEntity } from './entities/user.entity';
 import {
   FindOptionsSelect,
   FindOptionsSelectByString,
+  FindOptionsWhereProperty,
+  ILike,
+  QueryBuilder,
   Repository,
 } from 'typeorm';
 import { hash } from 'bcrypt';
@@ -44,6 +47,27 @@ export class UserService {
     return userWithoutPassword;
   }
 
+  async getProfile(userId: string) {
+    const user = await this.userRepository
+      .createQueryBuilder('user')
+      .loadRelationCountAndMap('user.followers', 'user.followers')
+      .loadRelationCountAndMap('user.following', 'user.following')
+      .where('user.id = :userId', { userId: userId })
+      .getOne();
+    return user;
+  }
+
+  async getUserWithFollowerCount(
+    userId: string,
+  ): Promise<UserEntity | undefined> {
+    return await this.userRepository
+      .createQueryBuilder('user')
+      .loadRelationCountAndMap('user.followers', 'user.followers')
+      .loadRelationCountAndMap('user.following', 'user.following')
+      .where('user.id = :userId', { userId })
+      .getOne();
+  }
+
   async findOne(email: string) {
     return this.userRepository.findOne({
       where: { email },
@@ -74,6 +98,22 @@ export class UserService {
     // return isSubscribe;
     await this.subscriptionRepository.delete(isSubscribe.id);
     return false;
+  }
+
+  async search(searchTerm?: string) {
+    let options: FindOptionsWhereProperty<UserEntity> = {};
+
+    if (searchTerm) {
+      options = {
+        userName: ILike(`%${searchTerm}%`),
+      };
+    }
+    const users = await this.userRepository.find({
+      where: {
+        ...options,
+      },
+    });
+    return users;
   }
 
   async allUser() {
