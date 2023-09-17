@@ -45,23 +45,44 @@ export class UserController {
     // return this.userService.findOne(req.user.email);
     return this.userService.getUserWithFollowerCount(req.user.id);
   }
-  @Get('profile/:userId')
+  @Get('profile/:userName')
   getProfile(
     @Req() req: AuthenticatedRequest,
-    @Param('userId') userId: string,
+    @Param('userName') userName: string,
   ) {
     // return req.user;
     // return this.userService.findOne(req.user.email);
-    return this.userService.getProfile(userId);
+    return this.userService.getProfile(userName);
+  }
+  @Get('followers/:userName')
+  getFollowers(
+    @Req() req: AuthenticatedRequest,
+    @Param('userName') userName: string,
+  ) {
+    return this.userService.getFollowers(req.user.id, userName);
+  }
+  @Get('following/:userName')
+  getFollowing(
+    @Req() req: AuthenticatedRequest,
+    @Param('userName') userName: string,
+  ) {
+    return this.userService.getFollowing(req.user.id, userName);
   }
 
-  @Get('search')
-  searchByUserName(@Query('searchTerm') searchTerm?: string) {
-    return this.userService.search(searchTerm);
-  }
+  // @Get('search')
+  // searchByUserName(@Query('searchTerm') searchTerm?: string) {
+  //   return this.userService.search(searchTerm);
+  // }
 
   @Get('all')
   getAllUser() {
     return this.userService.allUser();
   }
+  // @Get('status/subscription/:userId')
+  // statusIsSubscription(
+  //   @Req() req: AuthenticatedRequest,
+  //   @Param('userId') userId: string,
+  // ) {
+  //   return this.userService.statusIsSubscription(req.user.id, userId);
+  // }
 }

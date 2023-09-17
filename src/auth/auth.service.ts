@@ -26,8 +26,6 @@ export class AuthService {
       'email',
       'isVerified',
       'password',
-      'followers',
-      'following',
       'userName',
     ]);
     if (!user)
@@ -75,6 +73,13 @@ export class AuthService {
     // await this.setRefreshTokenToCookie(response, tokens.refresh_token);
     // console.log('again refresh');
     return tokens;
+  }
+
+  async status(email: string) {
+    if (!email) return { status: false };
+    const user = await this.userService.findOne(email);
+    if (!user) return { status: false };
+    return { status: true };
   }
 
   private async verifyRefreshJwtToken(token: string): Promise<IJwtPayload> {

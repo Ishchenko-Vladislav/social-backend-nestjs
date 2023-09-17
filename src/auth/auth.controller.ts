@@ -64,7 +64,7 @@ export class AuthController {
   }
 
   @Get('status')
-  status() {
-    return { status: true };
+  status(@Req() req: AuthenticatedRequest) {
+    return this.authService.status(req.user.email);
   }
 }

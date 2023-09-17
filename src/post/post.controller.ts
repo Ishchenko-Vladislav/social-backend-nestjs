@@ -17,7 +17,11 @@ import { AuthenticatedRequest } from 'src/auth/types/user.request';
 @Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
-
+  @Get('bookmarks-all')
+  getBookmarks(@Req() req: AuthenticatedRequest) {
+    return this.postService.getBookmarks();
+    // return 'ssssssss';
+  }
   @Get('all-posts')
   getAllPosts() {
     return this.postService.getAllPosts();
@@ -27,8 +31,20 @@ export class PostController {
     return this.postService.getAllHashtags();
   }
 
-  @Get('my/posts')
-  getAllMyPosts() {}
+  @Get('profile/posts/:userName')
+  getAllProfilePosts(
+    @Req() req: AuthenticatedRequest,
+    @Param('userName') userName: string,
+  ) {
+    return this.postService.getProfilePosts(req.user.id, userName);
+  }
+  @Get('profile/posts/likes/:userName')
+  getAllProfilePostsWithLikes(
+    @Req() req: AuthenticatedRequest,
+    @Param('userName') userName: string,
+  ) {
+    return this.postService.getProfilePostsWithLikes(req.user.id, userName);
+  }
 
   @Get('my/following/posts')
   getFollowingPosts(@Req() req: AuthenticatedRequest) {
@@ -67,5 +83,13 @@ export class PostController {
   @Get(':postId')
   getPostById(@Param('postId') postId: string) {
     return this.postService.getPostById(postId);
+  }
+
+  @Put('bookmark/:postId')
+  bookmarkHandle(
+    @Req() req: AuthenticatedRequest,
+    @Param('postId') postId: string,
+  ) {
+    return this.postService.bookmarkHandle(req.user.id, postId);
   }
 }

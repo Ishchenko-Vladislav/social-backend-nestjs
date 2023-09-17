@@ -18,4 +18,7 @@ export class HashtagEntity {
   @ManyToMany(() => PostEntity, (post) => post.tags)
   @JoinTable()
   posts: PostEntity[];
+
+  @Column({ name: 'posts_count', default: 0 })
+  postsCount: number;
 }

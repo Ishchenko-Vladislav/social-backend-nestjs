@@ -10,21 +10,22 @@ import {
   ManyToOne,
   PrimaryGeneratedColumn,
 } from 'typeorm';
-import { SubscriptionEntity } from './follower.entity';
+import { SubscriptionEntity } from './subscription.entity';
 import { ConversationEntity } from 'src/conversation/entities/conversation.entity';
 import { CommentEntity } from 'src/comment/entities/comment.entity';
 import { LikeToCommentEntity } from 'src/comment/entities/like.entity';
 import { LikeToPostEntity } from 'src/post/entities/like.entity';
+import { BookmarkEntity } from 'src/post/entities/bookmark.entity';
 
 @Entity('user')
 export class UserEntity extends Base {
   @Column({ default: '', unique: true })
   email: string;
 
-  @Column({ default: '', name: 'user_name' })
+  @Column({ default: '', name: 'user_name', unique: true })
   userName: string;
 
-  @Column({ name: 'display_name', unique: true })
+  @Column({ name: 'display_name' })
   displayName: string;
 
   @Column({ default: '', select: false })
@@ -41,17 +42,21 @@ export class UserEntity extends Base {
 
   @OneToMany(
     () => SubscriptionEntity,
-    (subscription) => subscription.following,
+    (subscription) => subscription.fromUser,
     { onDelete: 'CASCADE' },
   )
   following: SubscriptionEntity[];
 
-  @OneToMany(
-    () => SubscriptionEntity,
-    (subscription) => subscription.follower,
-    { onDelete: 'CASCADE' },
-  )
+  @Column({ name: 'following_count', default: 0 })
+  followingCount: number;
+
+  @OneToMany(() => SubscriptionEntity, (subscription) => subscription.toUser, {
+    onDelete: 'CASCADE',
+  })
   followers: SubscriptionEntity[];
+
+  @Column({ name: 'followers_count', default: 0 })
+  followersCount: number;
 
   @ManyToMany(() => ConversationEntity, (conversation) => conversation.users, {
     onDelete: 'CASCADE',
@@ -75,4 +80,8 @@ export class UserEntity extends Base {
     onDelete: 'CASCADE',
   })
   comment: CommentEntity[];
+
+  @OneToMany(() => BookmarkEntity, (mark) => mark.user)
+  @JoinColumn()
+  bookmarks: BookmarkEntity[];
 }

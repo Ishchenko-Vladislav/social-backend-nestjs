@@ -38,7 +38,21 @@ export class AppService {
         .where('tag.name ILIKE :name', { name: `%${searchTerm}%` })
         // .groupBy('tag.id, post.id') // Группируем по ID тега, чтобы получить правильные счетчики
         .groupBy('tag.id')
-        .getRawMany(); // Получаем результаты в виде "сырых" данных
+        .getRawMany();
+
+      // const tags = await this.hashtagRepository
+      //   .createQueryBuilder('tag')
+      //   .leftJoin('tag.posts', 'post')
+      //   .select(['COUNT(post.id) AS postCount', 'tag'])
+      //   // .addSelect('COUNT(post.id) AS postCount')
+      //   // .loadRelationCountAndMap('tag.postCount', 'tag.posts')
+      //   .where('tag.name ILIKE :name', { name: `%${searchTerm}%` })
+      //   // .groupBy('tag.id, post.id')
+      //   .groupBy('tag.id')
+      //   // .addGroupBy('post.id')
+      //   // .getMany();
+      //   .getRawMany();
+
       // .getMany();
       //   const tags = await this.hashtagRepository
       //     .createQueryBuilder('tag')
@@ -56,8 +70,12 @@ export class AppService {
       //   .getOne();
       return tags;
     }
+    let s;
+    if (searchTerm.startsWith('@')) {
+      s = searchTerm.length > 1 ? searchTerm.slice(1) : '';
+    }
     options = {
-      userName: ILike(`%${searchTerm}%`),
+      userName: ILike(`%${s}%`),
     };
     const users = await this.userRepository.find({
       where: {
