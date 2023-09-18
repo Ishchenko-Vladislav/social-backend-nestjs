@@ -71,14 +71,14 @@ export class PostService {
     const posts = await this.postRepository
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user')
-      .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :id', {
-        id: currentUserId,
+      .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :likeId', {
+        likeId: currentUserId,
       })
-      .leftJoinAndSelect('post.bookmarks', 'b', 'b.user.id = :id', {
-        id: currentUserId,
+      .leftJoinAndSelect('post.bookmarks', 'b', 'b.user.id = :bookmarksId', {
+        bookmarksId: currentUserId,
       })
-      .leftJoinAndSelect('user.followers', 'u', 'u.fromUser = :id', {
-        id: currentUserId,
+      .leftJoinAndSelect('user.followers', 'u', 'u.fromUser = :followersId', {
+        followersId: currentUserId,
       })
       .where('user.userName = :userName', { userName })
       .orderBy('post.createdAt', 'DESC')
@@ -108,36 +108,93 @@ export class PostService {
     //   })
     //   .where('user.userName = :userName', { userName })
     //   .getMany();
+    // const posts = await this.postRepository
+    //   .createQueryBuilder('post')
+    //   // .leftJoin('post.likes', 'like')
+    //   .leftJoinAndSelect('post.user', 'user')
+    //   .innerJoinAndSelect('post.likes', 'l', 'l.user.id = :id', {
+    //     id: user.id,
+    //   })
+    // .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :id', {
+    //   id: user.id,
+    // })
+    // .leftJoinAndSelect('l.user', 'pp')
+    // .leftJoinAndSelect('post.bookmarks', 'b', 'b.user.id = :id', {
+    //   id: currentUserId,
+    // })
+    // .leftJoinAndSelect('user.followers', 'u', 'u.fromUser = :id', {
+    //   id: currentUserId,
+    // })
+    // .where('user.userName = :userName', { userName })
+    // .where('like.user.userName = :userName', { userName })
+    // .where((qb) => {
+    //   const query = qb
+    //     .subQuery()
+    //     .select('like.post.id')
+    //     .from(LikeToPostEntity, 'like')
+    //     .where('like.user.id = :id', { id: user.id })
+    //     .getQuery();
+    //   return 'post.id IN ' + query;
+    // })
+    // .orderBy('post.createdAt', 'DESC')
+    //   // .groupBy('post.id')
+    // .getMany();
+    // const posts = await this.postRepository
+    //   .createQueryBuilder('post')
+    //   .leftJoin('post.likes', 'like')
+    //   .select(['post', 'like'])
+    //   .where((qb) => {
+    //     const query = qb
+    //       .subQuery()
+    //       .select('like.post.id')
+    //       .from(LikeToPostEntity, 'like')
+    //       .where('like.user.id = :id', { id: user.id })
+    //       .getQuery();
+    //     return 'post.id IN ' + query;
+    //   })
+    //   // .groupBy('post.id, like.id')
+    //   // .getRawMany();
+    //   .getMany();
+    // const isLiked = await this.likeRepository.findOne({where: {user: {id: currentUserId}, post: {id: post.id}}})
+
+    // const likes = await this.likeRepository.find({
+    //   where: { user: { userName } },
+    //   relations: ['post'],
+    // });
+    // const likes = await // .getMany();
+    // this.likeRepository
+    //   .createQueryBuilder('like')
+    //   .leftJoin('like.post', 'post')
+    //   .leftJoin('like.user', 'user')
+    //   .select('post.id')
+    //   .where('user.id = :id', { id: user.id })
+    //   // .orderBy('post.id')
+    //   // .getRawMany();
+    //   // .subQuery
+    //   .getQuery();
+    // const ll = likes.map((el) => el.post.id);
     const posts = await this.postRepository
       .createQueryBuilder('post')
-      // .leftJoin('post.likes', 'like')
       .leftJoinAndSelect('post.user', 'user')
-      // .innerJoin('post.likes', 'l', 'l.user.id = :id', {
-      //   id: user.id,
-      // })
-      .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :id', {
-        id: currentUserId,
+      .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :likeId', {
+        likeId: currentUserId,
       })
-      .leftJoinAndSelect('l.user', 'pp')
-      .leftJoinAndSelect('post.bookmarks', 'b', 'b.user.id = :id', {
-        id: currentUserId,
+      .leftJoinAndSelect('post.bookmarks', 'b', 'b.user.id = :bookmarksId', {
+        bookmarksId: currentUserId,
       })
-      .leftJoinAndSelect('user.followers', 'u', 'u.fromUser = :id', {
-        id: currentUserId,
+      .leftJoinAndSelect('user.followers', 'u', 'u.fromUser = :followersId', {
+        followersId: currentUserId,
       })
-      // .where('user.userName = :userName', { userName })
-      // .where('like.user.userName = :userName', { userName })
-      .where((qb) => {
-        const query = qb
-          .subQuery()
-          .select('like.post.id')
-          .from(LikeToPostEntity, 'like')
-          .where('like.user.id = :id', { id: user.id })
-          .getQuery();
-        return 'post.id IN ' + query;
-      })
-      .orderBy('post.createdAt', 'DESC')
-      // .groupBy('post.id')
+      .where(
+        (qb) =>
+          'post.id IN ' +
+          qb
+            .subQuery()
+            .select('like.post.id')
+            .from(LikeToPostEntity, 'like')
+            .where('like.user.id = :userId', { userId: user.id })
+            .getQuery(),
+      )
       .getMany();
     return posts;
   }
@@ -304,7 +361,6 @@ export class PostService {
       where: { id: postId },
       relations: {
         comments: { likes: true },
-        likes: true,
         user: true,
         tags: true,
       },

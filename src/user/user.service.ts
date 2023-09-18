@@ -61,11 +61,14 @@ export class UserService {
     return userWithoutPassword;
   }
 
-  async getProfile(userName: string) {
+  async getProfile(userName: string, currentUserId: string) {
     const user = await this.userRepository
       .createQueryBuilder('user')
       // .loadRelationCountAndMap('user.followers', 'user.followers')
       // .loadRelationCountAndMap('user.following', 'user.following')
+      .leftJoinAndSelect('user.followers', 'f', 'f.fromUser.id = :userId', {
+        userId: currentUserId,
+      })
       .where('user.userName = :userName', { userName })
       .getOne();
     return user;
@@ -133,28 +136,88 @@ export class UserService {
 
   async getFollowers(currentUserId: string, userName: string) {
     // if (!userName.startsWith('@')) userName = '@' + userName;
-    const followers = await this.subscriptionRepository
-      .createQueryBuilder('sub')
-      .leftJoinAndSelect('sub.fromUser', 'fromUser')
-      .leftJoinAndSelect('sub.toUser', 'toUser')
-      // .leftJoinAndSelect('sub.toUser', 'toUser', 'toUser = :id', {
-      //   id: currentUserId,
-      // })
-      .where('toUser.userName = :userName', { userName })
-      .getMany();
+    // const followers = await this.subscriptionRepository
+    //   .createQueryBuilder('sub')
+    //   .leftJoinAndSelect('sub.fromUser', 'fromUser')
+    //   .leftJoinAndSelect('sub.toUser', 'toUser')
+    //   // .leftJoinAndSelect('sub.toUser', 'toUser', 'toUser = :id', {
+    //   //   id: currentUserId,
+    //   // })
+    //   .where('toUser.userName = :userName', { userName })
+    //   .getMany();
+    const user = await this.userRepository.findOne({ where: { userName } });
+    // const followers = await this.userRepository.find({
+    //   where: { id: user.id },
+    //   relations: { followers: { fromUser: { followers: true } } },
+    // });
+    const followers = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.followers', 'followers')
+      .leftJoinAndSelect('followers.fromUser', 'fromUser')
+      .leftJoinAndSelect('fromUser.followers', 'f', 'f.fromUser = :id', {
+        id: currentUserId,
+      })
+      .where('user.id = :userId', { userId: user.id })
+      // .getMany();
+      .getOne();
+
+    //------/
+    // const followers = await this.subscriptionRepository
+    //   .createQueryBuilder('sub')
+    //   .leftJoinAndSelect('sub.fromUser', 'fromUser')
+    //   .leftJoinAndSelect('sub.toUser', 'toUser')
+    //   .where('toUser.id = :userId', { userId: user.id })
+    //   .getMany();
+
+    // const followers = await this.subscriptionRepository
+    //   .createQueryBuilder('sub')
+    //   .leftJoin('sub.fromUser', 'fromUser')
+    //   .leftJoin('sub.toUser', 'toUser')
+    //   .select([
+    //     'fromUser.id AS id',
+    //     'fromUser.userName AS userName',
+    //     'fromUser.followingCount AS followingCount',
+    //     'fromUser.followersCount AS followersCount',
+    //     'fromUser.avatarPath AS avatarPath',
+    //     'fromUser.isVerified AS isVerified',
+    //     'fromUser.displayName AS displayName',
+    //   ])
+    //   .addSelect('fromUser.followers', 'ff')
+    //   // .where('toUser.id = :userId', { userId: user.id })
+    //   .groupBy('fromUser.id, ff.id')
+    //   .getRawMany();
     return followers;
   }
   async getFollowing(currentUserId: string, userName: string) {
     // if (!userName.startsWith('@')) userName = '@' + userName;
-    const followers = await this.subscriptionRepository
-      .createQueryBuilder('sub')
-      .leftJoinAndSelect('sub.fromUser', 'fromUser')
-      // .leftJoinAndSelect('sub.fromUser', 'fromUser', 'toUser = :id', {
-      //   id: currentUserId,
-      // })
-      .leftJoinAndSelect('sub.toUser', 'toUser')
-      .where('fromUser.userName = :userName', { userName })
-      .getMany();
+    // const followers = await this.subscriptionRepository
+    //   .createQueryBuilder('sub')
+    //   .leftJoinAndSelect('sub.fromUser', 'fromUser')
+    //   // .leftJoinAndSelect('sub.fromUser', 'fromUser', 'toUser = :id', {
+    //   //   id: currentUserId,
+    //   // })
+    //   .leftJoinAndSelect('sub.toUser', 'toUser')
+    //   .where('fromUser.userName = :userName', { userName })
+    //   .getMany();
+    // const user = await this.userRepository.findOne({ where: { userName } });
+    // const followers = await this.userRepository
+    //   .createQueryBuilder('user')
+    //   .innerJoinAndSelect('user.followers', 'f', 'f.fromUser.id = :id', {
+    //     id: user.id,
+    //   })
+    //   .getMany();
+    const user = await this.userRepository.findOne({ where: { userName } });
+
+    const followers = await this.userRepository
+      .createQueryBuilder('user')
+      .leftJoinAndSelect('user.following', 'followers')
+      .leftJoinAndSelect('followers.toUser', 'toUser')
+      .leftJoinAndSelect('toUser.followers', 'f', 'f.fromUser = :id', {
+        id: currentUserId,
+      })
+      .where('user.id = :userId', { userId: user.id })
+      // .getMany();
+      .getOne();
     return followers;
   }
 

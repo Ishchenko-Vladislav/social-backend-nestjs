@@ -79,7 +79,7 @@ export class AuthService {
     if (!email) return { status: false };
     const user = await this.userService.findOne(email);
     if (!user) return { status: false };
-    return { status: true };
+    return { status: true, id: user.id, userName: user.userName };
   }
 
   private async verifyRefreshJwtToken(token: string): Promise<IJwtPayload> {

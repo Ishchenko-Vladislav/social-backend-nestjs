@@ -52,7 +52,7 @@ export class UserController {
   ) {
     // return req.user;
     // return this.userService.findOne(req.user.email);
-    return this.userService.getProfile(userName);
+    return this.userService.getProfile(userName, req.user.id);
   }
   @Get('followers/:userName')
   getFollowers(
