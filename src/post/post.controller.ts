@@ -17,9 +17,9 @@ import { AuthenticatedRequest } from 'src/auth/types/user.request';
 @Controller('post')
 export class PostController {
   constructor(private readonly postService: PostService) {}
-  @Get('bookmarks-all')
+  @Get('bookmarks')
   getBookmarks(@Req() req: AuthenticatedRequest) {
-    return this.postService.getBookmarks();
+    return this.postService.getBookmarks(req.user.id);
     // return 'ssssssss';
   }
   @Get('all-posts')
@@ -81,8 +81,11 @@ export class PostController {
     return this.postService.createPost(req.user.id, createPostDto);
   }
   @Get(':postId')
-  getPostById(@Param('postId') postId: string) {
-    return this.postService.getPostById(postId);
+  getPostById(
+    @Req() req: AuthenticatedRequest,
+    @Param('postId') postId: string,
+  ) {
+    return this.postService.getPostById(req.user.id, postId);
   }
 
   @Put('bookmark/:postId')

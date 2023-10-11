@@ -69,6 +69,13 @@ export class CommentService {
   }
 
   async getCommentById(commentId: string) {}
+  async getCommentsByPostId(postId: string) {
+    return await this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.user', 'user')
+      .where('comment.post.id = :postId', { postId })
+      .getMany();
+  }
   async getAllComments() {
     return await this.commentRepository.find();
   }

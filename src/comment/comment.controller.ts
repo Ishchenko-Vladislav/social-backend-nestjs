@@ -40,6 +40,14 @@ export class CommentController {
     return this.commentService.likeToComment(req.user.id, commentId);
   }
 
+  @Get(':postId')
+  getCommentsByPostId(
+    @Req() req: AuthenticatedRequest,
+    @Param('postId') postId: string,
+  ) {
+    return this.commentService.getCommentsByPostId(postId);
+  }
+
   @Post(':postId')
   create(
     @Body() createCommentDto: CreateCommentDto,

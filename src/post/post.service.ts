@@ -356,15 +356,32 @@ export class PostService {
     return post;
   }
 
-  async getPostById(postId: string) {
-    const post = await this.postRepository.findOne({
-      where: { id: postId },
-      relations: {
-        comments: { likes: true },
-        user: true,
-        tags: true,
-      },
-    });
+  async getPostById(currentUserId: string, postId: string) {
+    // const post = await this.postRepository.findOne({
+    //   where: { id: postId },
+    //   relations: {
+    //     comments: { likes: true },
+    //     user: true,
+    //     tags: true,
+    //   },
+    // });
+
+    const post = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.comments', 'comments')
+      .leftJoinAndSelect('post.user', 'user')
+      .leftJoinAndSelect('post.tags', 'tags')
+      .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :likeId', {
+        likeId: currentUserId,
+      })
+      .leftJoinAndSelect('post.bookmarks', 'b', 'b.user.id = :bookmarksId', {
+        bookmarksId: currentUserId,
+      })
+      .leftJoinAndSelect('user.followers', 'u', 'u.fromUser = :followersId', {
+        followersId: currentUserId,
+      })
+      .where('post.id = :postId', { postId })
+      .getOne();
     if (!post) throw new BadRequestException();
 
     return post;
@@ -406,10 +423,27 @@ export class PostService {
     return post;
   }
 
-  async getBookmarks() {
-    const bookmarks = await this.bookmarkRepository.find({
-      relations: { post: true, user: true },
-    });
+  async getBookmarks(currentUserId: string) {
+    // const bookmarks = await this.bookmarkRepository.find({
+    //   relations: { post: true, user: true },
+    // });
+    const bookmarks = await this.bookmarkRepository
+      .createQueryBuilder('mark')
+      .leftJoin('mark.user', 'u')
+      .leftJoinAndSelect('mark.post', 'post')
+      .leftJoinAndSelect('post.user', 'user')
+      // .leftJoin('user.followers' , 'ff')
+      .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :likeId', {
+        likeId: currentUserId,
+      })
+      .leftJoinAndSelect('post.bookmarks', 'b', 'b.user.id = :bookmarksId', {
+        bookmarksId: currentUserId,
+      })
+      .leftJoinAndSelect('user.followers', 'f', 'f.fromUser.id = :id', {
+        id: currentUserId,
+      })
+      .where('u.id = :currentUserId', { currentUserId })
+      .getMany();
     return bookmarks;
     // return 'getBookmarks';
   }

@@ -23,4 +23,7 @@ export class CommentEntity extends Base {
   @OneToMany(() => LikeToCommentEntity, (like) => like.comment)
   @JoinColumn({ name: 'likes_id' })
   likes: LikeToCommentEntity[];
+
+  @Column({ default: 0, name: 'likes_count' })
+  likesCount: number;
 }
