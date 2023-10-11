@@ -45,6 +45,10 @@ export class CommentService {
   }
 
   async likeToComment(currentUserId: string, commentId: string) {
+    const data = {
+      comment: { id: commentId },
+      user: { id: currentUserId },
+    };
     const comment = await this.commentRepository.findOne({
       where: { id: commentId },
     });
@@ -53,18 +57,18 @@ export class CommentService {
         "You are trying to like a comment that doesn't exist",
       );
     const likeExist = await this.likeRepository.findOne({
-      where: { comment: { id: commentId }, user: { id: currentUserId } },
+      where: data,
     });
 
     if (!likeExist) {
-      await this.likeRepository.save({
-        post: { id: commentId },
-        user: { id: currentUserId },
-      });
+      await this.likeRepository.save(data);
+      comment.likesCount++;
+      await this.commentRepository.save(comment);
       return true;
     }
-
     await this.likeRepository.delete({ id: likeExist.id });
+    comment.likesCount--;
+    await this.commentRepository.save(comment);
     return false;
   }
 
