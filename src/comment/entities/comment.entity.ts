@@ -17,7 +17,7 @@ export class CommentEntity extends Base {
   @JoinColumn({ name: 'user_id' })
   user: UserEntity;
 
-  @Column()
+  @Column({ nullable: true })
   text: string;
 
   @OneToMany(() => LikeToCommentEntity, (like) => like.comment)
@@ -26,4 +26,7 @@ export class CommentEntity extends Base {
 
   @Column({ default: 0, name: 'likes_count' })
   likesCount: number;
+
+  @Column({ default: null, nullable: true })
+  attachment: string;
 }

@@ -13,10 +13,14 @@ import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { AuthenticatedRequest } from 'src/auth/types/user.request';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Controller('comment')
 export class CommentController {
-  constructor(private readonly commentService: CommentService) {}
+  constructor(
+    private readonly commentService: CommentService,
+    private readonly cloudinaryService: CloudinaryService,
+  ) {}
 
   @Get('by-id/:commentId')
   getCommentById(
@@ -54,6 +58,7 @@ export class CommentController {
     @Req() req: AuthenticatedRequest,
     @Param('postId') postId: string,
   ) {
+    // cloudinaryService.
     return this.commentService.create(req.user.id, createCommentDto, postId);
   }
 

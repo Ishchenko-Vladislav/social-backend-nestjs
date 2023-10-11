@@ -16,6 +16,7 @@ import { ConversationModule } from './conversation/conversation.module';
 import { AppController } from './app.controller';
 import { UserEntity } from './user/entities/user.entity';
 import { HashtagEntity } from './post/entities/hashtag.entity';
+import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -42,6 +43,7 @@ import { HashtagEntity } from './post/entities/hashtag.entity';
     }),
     ConversationModule,
     TypeOrmModule.forFeature([UserEntity, HashtagEntity]),
+    CloudinaryModule,
   ],
   controllers: [AppController],
   providers: [
