@@ -1,26 +1,37 @@
-import { Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  FileTypeValidator,
+  MaxFileSizeValidator,
+  ParseFilePipe,
+  Post,
+  UploadedFile,
+  UseInterceptors,
+} from '@nestjs/common';
 import { CloudinaryService } from './cloudinary.service';
-import { v2 as cloudinary } from 'cloudinary';
+// import { v2 as cloudinary } from 'cloudinary';
+import { FileInterceptor } from '@nestjs/platform-express';
 @Controller('cloudinary')
 export class CloudinaryController {
   constructor(private readonly cloudinaryService: CloudinaryService) {}
 
-  @Post()
-  async UploadedFile() {
-    // cloudinary.config({
-    //   cloud_name: 'daswkls85',
-    //   api_key: '456839817517438',
-    //   api_secret: '8myAm2mvR7vd9SYJFYBXzy6hlEU',
-    //   secure: true,
-    // });
-    // console.log('config', cloudinary.config());
-    // cloudinary.uploader.upload(
-    //   'https://upload.wikimedia.org/wikipedia/commons/a/ae/Olympic_flag.jpg',
-    //   { public_id: 'olympic_flag_02' },
-    //   function (error, result) {
-    //     console.log('result v2', result, error);
-    //   },
-    // );
-    return true;
+  @Post('upload')
+  @UseInterceptors(FileInterceptor('file'))
+  uploadedFile(
+    @UploadedFile(
+      new ParseFilePipe({
+        validators: [
+          new MaxFileSizeValidator({
+            maxSize: 1024 * 1024 * 50,
+            message: 'very large size',
+          }),
+          // new FileTypeValidator({ fileType: '.(png|jpg|jpeg)' }),
+        ],
+      }),
+    )
+    file: Express.Multer.File,
+  ) {
+    // console.log(file);
+    return this.cloudinaryService.uploadFile(file);
   }
 }

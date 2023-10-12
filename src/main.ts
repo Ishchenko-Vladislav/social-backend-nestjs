@@ -5,6 +5,7 @@ import { ValidationPipe } from '@nestjs/common';
 import { AuthGuard } from './auth/guards/auth.guard';
 import { v2 as cloudinary } from 'cloudinary';
 import { NestExpressApplication } from '@nestjs/platform-express';
+
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     rawBody: true,
@@ -42,6 +43,9 @@ async function bootstrap() {
   //   api_secret: process.env.CLOUDINARY_API_SECRET,
   // });
   app.useBodyParser('json', { limit: '50mb' });
+  app.useBodyParser('urlencoded', { extended: true, limit: '50mb' });
+  app.useBodyParser('raw', { limit: '50mb' });
+  app.useBodyParser('text', { limit: '50mb' });
   // app.useBodyParser
   await app.listen(4200);
 }

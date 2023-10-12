@@ -49,7 +49,11 @@ export class CommentService {
     // if (!attachment && !text) {
     //   return new BadRequestException('');
     // }
-
+    const post = await this.postRepository.findOne({ where: { id: postId } });
+    if (!post)
+      return new BadRequestException(
+        "you're trying to comment on a post that doesn't exist",
+      );
     const comment = this.commentRepository.create({
       post: { id: postId },
       user: { id: currentUserId },
@@ -64,6 +68,8 @@ export class CommentService {
       comment.attachment = uploadedFile.secure_url;
     }
     await this.commentRepository.save(comment);
+    post.commentsCount++;
+    await this.postRepository.save(post);
     const response = await this.commentRepository.findOne({
       where: {
         id: comment.id,
