@@ -62,10 +62,19 @@ export class CommentService {
     if (text) {
       comment.text = text;
     }
-    if (attachment) {
+    if (attachment && attachment.length > 0) {
+      const attachments = await this.cloudinaryService.createAttachment(
+        attachment,
+        'comment',
+        comment.id,
+      );
+      // comment.attachment = attach
+      comment.attachment = attachments;
+      // if(attachment.resource_type === 'image') {
+      // }
       // comment.attachment = attachment
-      const uploadedFile = await this.cloudinaryService.uploadFile(attachment);
-      comment.attachment = uploadedFile.secure_url;
+      // const uploadedFile = await this.cloudinaryService.uploadFile(attachment);
+      // comment.attachment = uploadedFile.secure_url;
     }
     await this.commentRepository.save(comment);
     post.commentsCount++;
@@ -76,6 +85,7 @@ export class CommentService {
       },
       relations: {
         user: true,
+        attachment: true,
       },
     });
     return response;
@@ -135,7 +145,9 @@ export class CommentService {
     return await this.commentRepository
       .createQueryBuilder('comment')
       .leftJoinAndSelect('comment.user', 'user')
+      .leftJoinAndSelect('comment.attachment', 'attachment')
       .where('comment.post.id = :postId', { postId })
+      .orderBy('comment.createdAt', 'DESC')
       .getMany();
   }
   async getAllComments() {

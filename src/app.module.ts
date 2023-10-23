@@ -16,7 +16,6 @@ import { ConversationModule } from './conversation/conversation.module';
 import { AppController } from './app.controller';
 import { UserEntity } from './user/entities/user.entity';
 import { HashtagEntity } from './post/entities/hashtag.entity';
-// import { MulterModule } from '@nestjs/platform-express';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 
 @Module({
@@ -27,7 +26,6 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     PostModule,
     PassportModule,
     JwtModule.register({}),
-
     ConfigModule.forRoot({ isGlobal: true }),
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],

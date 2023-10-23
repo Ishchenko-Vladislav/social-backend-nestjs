@@ -1,8 +1,10 @@
 import {
   Body,
   Controller,
+  Delete,
   FileTypeValidator,
   MaxFileSizeValidator,
+  Param,
   ParseFilePipe,
   Post,
   UploadedFile,
@@ -31,7 +33,12 @@ export class CloudinaryController {
     )
     file: Express.Multer.File,
   ) {
-    // console.log(file);
+    // console.log('new file', file);
     return this.cloudinaryService.uploadFile(file);
+  }
+
+  @Delete(':publicId')
+  deleteFile(@Param('publicId') publicId: string) {
+    return this.cloudinaryService.deleteFile(publicId);
   }
 }
