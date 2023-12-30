@@ -123,102 +123,66 @@ export class UserService {
       // const sub = this.subscriptionRepository.create(data)
       currentUser.followingCount++;
       recipientUser.followersCount++;
-      await this.userRepository.save([currentUser, recipientUser]);
-      return true;
+      // await this.userRepository.save([currentUser, recipientUser]);
+      // return {
+      //   isFollowing: true,
+      // };
+    } else {
+      await this.subscriptionRepository.delete(isSubscribe.id);
+      currentUser.followingCount--;
+      recipientUser.followersCount--;
     }
+    const u = await this.userRepository.save([currentUser, recipientUser]);
     // return isSubscribe;
-    await this.subscriptionRepository.delete(isSubscribe.id);
-    currentUser.followingCount--;
-    recipientUser.followersCount--;
-    await this.userRepository.save([currentUser, recipientUser]);
-    return false;
+
+    return true;
   }
 
-  async getFollowers(currentUserId: string, userName: string) {
-    // if (!userName.startsWith('@')) userName = '@' + userName;
-    // const followers = await this.subscriptionRepository
-    //   .createQueryBuilder('sub')
-    //   .leftJoinAndSelect('sub.fromUser', 'fromUser')
-    //   .leftJoinAndSelect('sub.toUser', 'toUser')
-    //   // .leftJoinAndSelect('sub.toUser', 'toUser', 'toUser = :id', {
-    //   //   id: currentUserId,
-    //   // })
-    //   .where('toUser.userName = :userName', { userName })
-    //   .getMany();
+  async getFollowers(
+    currentUserId: string,
+    userName: string,
+    pageParam: string,
+  ) {
     const user = await this.userRepository.findOne({ where: { userName } });
-    // const followers = await this.userRepository.find({
-    //   where: { id: user.id },
-    //   relations: { followers: { fromUser: { followers: true } } },
-    // });
-    const followers = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.followers', 'followers')
-      .leftJoinAndSelect('followers.fromUser', 'fromUser')
+    const limit = 10;
+    const currentPage = +pageParam;
+    const skip = currentPage * limit;
+    const followers = await this.subscriptionRepository
+      .createQueryBuilder('sub')
+      .leftJoinAndSelect('sub.fromUser', 'fromUser')
+      .leftJoinAndSelect('sub.toUser', 'toUser')
       .leftJoinAndSelect('fromUser.followers', 'f', 'f.fromUser = :id', {
         id: currentUserId,
       })
-      .where('user.id = :userId', { userId: user.id })
-      // .getMany();
-      .getOne();
-
-    //------/
-    // const followers = await this.subscriptionRepository
-    //   .createQueryBuilder('sub')
-    //   .leftJoinAndSelect('sub.fromUser', 'fromUser')
-    //   .leftJoinAndSelect('sub.toUser', 'toUser')
-    //   .where('toUser.id = :userId', { userId: user.id })
-    //   .getMany();
-
-    // const followers = await this.subscriptionRepository
-    //   .createQueryBuilder('sub')
-    //   .leftJoin('sub.fromUser', 'fromUser')
-    //   .leftJoin('sub.toUser', 'toUser')
-    //   .select([
-    //     'fromUser.id AS id',
-    //     'fromUser.userName AS userName',
-    //     'fromUser.followingCount AS followingCount',
-    //     'fromUser.followersCount AS followersCount',
-    //     'fromUser.avatarPath AS avatarPath',
-    //     'fromUser.isVerified AS isVerified',
-    //     'fromUser.displayName AS displayName',
-    //   ])
-    //   .addSelect('fromUser.followers', 'ff')
-    //   // .where('toUser.id = :userId', { userId: user.id })
-    //   .groupBy('fromUser.id, ff.id')
-    //   .getRawMany();
+      .where('toUser.id = :toUserId', { toUserId: user.id })
+      .take(limit)
+      .skip(skip)
+      .getMany();
     return followers;
   }
-  async getFollowing(currentUserId: string, userName: string) {
-    // if (!userName.startsWith('@')) userName = '@' + userName;
-    // const followers = await this.subscriptionRepository
-    //   .createQueryBuilder('sub')
-    //   .leftJoinAndSelect('sub.fromUser', 'fromUser')
-    //   // .leftJoinAndSelect('sub.fromUser', 'fromUser', 'toUser = :id', {
-    //   //   id: currentUserId,
-    //   // })
-    //   .leftJoinAndSelect('sub.toUser', 'toUser')
-    //   .where('fromUser.userName = :userName', { userName })
-    //   .getMany();
-    // const user = await this.userRepository.findOne({ where: { userName } });
-    // const followers = await this.userRepository
-    //   .createQueryBuilder('user')
-    //   .innerJoinAndSelect('user.followers', 'f', 'f.fromUser.id = :id', {
-    //     id: user.id,
-    //   })
-    //   .getMany();
+  async getFollowing(
+    currentUserId: string,
+    userName: string,
+    pageParam: string,
+  ) {
     const user = await this.userRepository.findOne({ where: { userName } });
+    const limit = 10;
+    const currentPage = +pageParam;
+    const skip = currentPage * limit;
 
-    const followers = await this.userRepository
-      .createQueryBuilder('user')
-      .leftJoinAndSelect('user.following', 'followers')
-      .leftJoinAndSelect('followers.toUser', 'toUser')
+    const followings = await this.subscriptionRepository
+      .createQueryBuilder('sub')
+      .leftJoinAndSelect('sub.fromUser', 'fromUser')
+      .leftJoinAndSelect('sub.toUser', 'toUser')
       .leftJoinAndSelect('toUser.followers', 'f', 'f.fromUser = :id', {
         id: currentUserId,
       })
-      .where('user.id = :userId', { userId: user.id })
-      // .getMany();
-      .getOne();
-    return followers;
+      .where('fromUser.id = :fromUserId', { fromUserId: user.id })
+      .take(limit)
+      .skip(skip)
+      .getMany();
+
+    return followings;
   }
 
   // async search(searchTerm?: string) {

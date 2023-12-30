@@ -8,6 +8,7 @@ import {
   Delete,
   Req,
   Put,
+  Query,
 } from '@nestjs/common';
 import { CommentService } from './comment.service';
 import { CreateCommentDto } from './dto/create-comment.dto';
@@ -48,8 +49,13 @@ export class CommentController {
   getCommentsByPostId(
     @Req() req: AuthenticatedRequest,
     @Param('postId') postId: string,
+    @Query('pageParam') pageParam: string,
   ) {
-    return this.commentService.getCommentsByPostId(postId);
+    return this.commentService.getCommentsByPostId(
+      postId,
+      req.user.id,
+      pageParam,
+    );
   }
 
   @Post(':postId')

@@ -1,7 +1,8 @@
 import { UserEntity } from 'src/user/entities/user.entity';
 import { Base } from 'src/utils/Base';
-import { Entity, ManyToOne, Column } from 'typeorm';
+import { Entity, ManyToOne, Column, OneToMany } from 'typeorm';
 import { ConversationEntity } from './conversation.entity';
+import { AttachmentEntity } from 'src/cloudinary/entities/attachment.entity';
 
 @Entity('message')
 export default class MessageEntity extends Base {
@@ -23,4 +24,7 @@ export default class MessageEntity extends Base {
     },
   )
   conversation: ConversationEntity;
+
+  @OneToMany(() => AttachmentEntity, (attach) => attach.message)
+  attachment: AttachmentEntity[];
 }

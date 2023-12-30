@@ -74,7 +74,7 @@ export class CloudinaryService {
   }
   async createAttachment(
     attachment: CreateDtoAttachment[],
-    entity: 'comment',
+    entity: 'comment' | 'post',
     entityId: string,
   ) {
     // const attach = this.filterAttachmentField(attachment)
@@ -115,7 +115,7 @@ export class CloudinaryService {
 
   private async filterAttachmentField(
     attachment: CreateDtoAttachment,
-    entity: 'comment',
+    entity: 'comment' | 'post',
     entityId: string,
   ) {
     const attach = this.attachmentRepository.create({

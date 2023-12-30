@@ -13,80 +13,48 @@ export class AppService {
     private readonly hashtagRepository: Repository<HashtagEntity>,
   ) {}
 
-  async searchSomeone(searchTerm: string) {
+  async searchSomeone(searchTerm: string, only: string | undefined) {
     let options: FindOptionsWhereProperty<UserEntity | HashtagEntity> = {};
     if (!searchTerm) return [];
 
-    if (searchTerm.startsWith('#')) {
+    if (only === 'tag' || searchTerm.startsWith('#')) {
       options = {
         name: ILike(`%${searchTerm}%`),
       };
-      // const tags = await this.hashtagRepository.find({ where: { ...options } });
-      // const s = tags.map(tag => tag.)
       const tags = await this.hashtagRepository
         .createQueryBuilder('tag')
         .leftJoin('tag.posts', 'post')
-        // .alias
         .select([
           'COUNT(post.id) AS postCount',
           'tag.id AS id',
           'tag.name AS name',
         ])
-        // .addSelect('tag.name')
-        // .select('tag.name')
-        // .addSelect('COUNT(post.id)', 'postCount') // Подсчитываем количество постов и даем ему псевдоним postCount
         .where('tag.name ILIKE :name', { name: `%${searchTerm}%` })
-        // .groupBy('tag.id, post.id') // Группируем по ID тега, чтобы получить правильные счетчики
+        .take(12)
         .groupBy('tag.id')
         .getRawMany();
-
-      // const tags = await this.hashtagRepository
-      //   .createQueryBuilder('tag')
-      //   .leftJoin('tag.posts', 'post')
-      //   .select(['COUNT(post.id) AS postCount', 'tag'])
-      //   // .addSelect('COUNT(post.id) AS postCount')
-      //   // .loadRelationCountAndMap('tag.postCount', 'tag.posts')
-      //   .where('tag.name ILIKE :name', { name: `%${searchTerm}%` })
-      //   // .groupBy('tag.id, post.id')
-      //   .groupBy('tag.id')
-      //   // .addGroupBy('post.id')
-      //   // .getMany();
-      //   .getRawMany();
-
-      // .getMany();
-      //   const tags = await this.hashtagRepository
-      //     .createQueryBuilder('tag')
-      //     // .leftJoinAndSelect('tag.posts', 'post')
-      //     // .leftJoinAndSelect('tag.posts', 'post')
-      //     // .addSelect('COUNT(post.id)', 'postCount')
-      //     // .loadAllRelationIds({ relations: ['posts'] })
-
-      //     .loadRelationCountAndMap('tag.postsCount', 'tag.posts')
-      //     // .where('tag.name = :tagsName', { tagsName: ILike(`%${searchTerm}%`) })
-      //     .where('tag.name ILIKE :name', { name: `%${searchTerm}%` })
-      // .getRawMany();
-      //       .getMany();
-      //   .groupBy('tag')
-      //   .getOne();
       return tags;
+    } else {
+      let s = searchTerm.startsWith('@') ? searchTerm.slice(1) : searchTerm;
+
+      options = {
+        userName: ILike(`%${s}%`),
+      };
+      const users = await this.userRepository
+        .createQueryBuilder('user')
+        .where(
+          'user.userName ILIKE :searchTerm OR user.displayName ILIKE :searchTerm',
+          { searchTerm: `%${s}%` },
+        )
+        .take(12)
+        .getMany();
+      // const users = await this.userRepository.find({
+      //   where: {
+      //     ...options,
+      //   },
+      //   take: 12,
+      // });
+      return users;
     }
-    let s;
-    if (searchTerm.startsWith('@')) {
-      s = searchTerm.length > 1 ? searchTerm.slice(1) : '';
-    }
-    options = {
-      userName: ILike(`%${s}%`),
-    };
-    const users = await this.userRepository.find({
-      where: {
-        ...options,
-      },
-    });
-    return users;
-    // if (searchTerm.startsWith('@')) {
-    //   options = {
-    //     userName: ILike(`%${searchTerm}%`),
-    //   };
-    // }
   }
 }

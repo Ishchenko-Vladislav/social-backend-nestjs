@@ -47,25 +47,52 @@ export class ConversationService {
     return conversation;
   }
 
-  async getConversation(id: string) {
+  async getConversation(userId: string, pageParam: string) {
     // const conversation = await this.conversationRepository
     //   .createQueryBuilder('conversation')
     //   .leftJoinAndSelect('conversation.users', 'user')
     //   .where('user.id = :creatorId', { creatorId: id })
     //   .getMany();
+    const limit = 30;
+    const currentPage = +pageParam;
+    const skip = currentPage * limit;
     const conversation = await this.conversationRepository
       .createQueryBuilder('conversation')
       .innerJoin('conversation.users', 'user', 'user.id = :userId', {
-        userId: id,
+        userId: userId,
       })
       .leftJoinAndSelect('conversation.users', 'users')
       .leftJoinAndSelect('conversation.lastMessageSent', 'lastMessageSent')
+      .orderBy('conversation.updatedAt', 'DESC')
+      .take(limit)
+      .skip(skip)
       .getMany();
 
     return conversation;
   }
 
-  async getConversationById(currentUserId: string, recipientId: string) {
+  async getConversationById(conversationId: string) {
+    // const conversation = await this.conversationRepository
+    //   .createQueryBuilder('conversation')
+    //   .leftJoinAndSelect('conversation.users', 'users')
+    //   .where('users.id IN (:creatorId, :recipientId)', {
+    //     creatorId: currentUserId,
+    //     recipientId,
+    //   })
+    //   .andWhere('conversation.type = :type', { type: 'private' })
+    //   .having('COUNT(DISTINCT users.id) = 2')
+    //   .getMany();
+    const conversation = await this.conversationRepository
+      .createQueryBuilder('con')
+      .leftJoinAndSelect('con.users', 'users')
+      .leftJoinAndSelect('con.lastMessageSent', 'lastMessageSent')
+      .where('con.id = :conversationId', { conversationId })
+      .getOne();
+    if (!conversation)
+      return new BadRequestException('this conversation does not exist');
+    return conversation;
+  }
+  async getConversationWith(currentUserId: string, recipientId: string) {
     // const conversation = await this.conversationRepository
     //   .createQueryBuilder('conversation')
     //   .leftJoinAndSelect('conversation.users', 'users')

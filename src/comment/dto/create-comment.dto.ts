@@ -9,7 +9,15 @@ export class CreateCommentDto {
   // @IsBase64()
   @IsOptional()
   attachment: CreateDtoAttachment[];
+
+  @IsOptional()
+  info: TCommentInfo;
 }
+
+export type TCommentInfo = {
+  mentions: any[];
+  hashtags: any[];
+};
 
 export type CreateDtoAttachment =
   | CloudinaryVideo

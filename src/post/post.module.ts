@@ -8,6 +8,7 @@ import { UserEntity } from 'src/user/entities/user.entity';
 import { SubscriptionEntity } from 'src/user/entities/subscription.entity';
 import { HashtagEntity } from './entities/hashtag.entity';
 import { BookmarkEntity } from './entities/bookmark.entity';
+import { CloudinaryModule } from 'src/cloudinary/cloudinary.module';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { BookmarkEntity } from './entities/bookmark.entity';
       HashtagEntity,
       BookmarkEntity,
     ]),
+    CloudinaryModule,
   ],
   controllers: [PostController],
   providers: [PostService],

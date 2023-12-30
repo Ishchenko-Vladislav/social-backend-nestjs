@@ -8,6 +8,7 @@ import {
   Delete,
   Req,
   Put,
+  Query,
 } from '@nestjs/common';
 import { PostService } from './post.service';
 import { CreatePostDto } from './dto/create-post.dto';
@@ -18,8 +19,11 @@ import { AuthenticatedRequest } from 'src/auth/types/user.request';
 export class PostController {
   constructor(private readonly postService: PostService) {}
   @Get('bookmarks')
-  getBookmarks(@Req() req: AuthenticatedRequest) {
-    return this.postService.getBookmarks(req.user.id);
+  getBookmarks(
+    @Req() req: AuthenticatedRequest,
+    @Query('pageParam') pageParam: string,
+  ) {
+    return this.postService.getBookmarks(req.user.id, pageParam);
     // return 'ssssssss';
   }
   @Get('all-posts')
@@ -35,20 +39,29 @@ export class PostController {
   getAllProfilePosts(
     @Req() req: AuthenticatedRequest,
     @Param('userName') userName: string,
+    @Query('pageParam') pageParam: string,
   ) {
-    return this.postService.getProfilePosts(req.user.id, userName);
+    return this.postService.getProfilePosts(req.user.id, userName, pageParam);
   }
   @Get('profile/posts/likes/:userName')
   getAllProfilePostsWithLikes(
     @Req() req: AuthenticatedRequest,
     @Param('userName') userName: string,
+    @Query('pageParam') pageParam: string,
   ) {
-    return this.postService.getProfilePostsWithLikes(req.user.id, userName);
+    return this.postService.getProfilePostsWithLikes(
+      req.user.id,
+      userName,
+      pageParam,
+    );
   }
 
   @Get('my/following/posts')
-  getFollowingPosts(@Req() req: AuthenticatedRequest) {
-    return this.postService.getFollowingPosts(req.user.id);
+  getFollowingPosts(
+    @Req() req: AuthenticatedRequest,
+    @Query('pageParam') pageParam: string,
+  ) {
+    return this.postService.getFollowingPosts(req.user.id, pageParam);
   }
 
   @Put(':postId/like')

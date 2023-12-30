@@ -58,15 +58,17 @@ export class UserController {
   getFollowers(
     @Req() req: AuthenticatedRequest,
     @Param('userName') userName: string,
+    @Query('pageParam') pageParam: string,
   ) {
-    return this.userService.getFollowers(req.user.id, userName);
+    return this.userService.getFollowers(req.user.id, userName, pageParam);
   }
   @Get('following/:userName')
   getFollowing(
     @Req() req: AuthenticatedRequest,
     @Param('userName') userName: string,
+    @Query('pageParam') pageParam: string,
   ) {
-    return this.userService.getFollowing(req.user.id, userName);
+    return this.userService.getFollowing(req.user.id, userName, pageParam);
   }
 
   // @Get('search')

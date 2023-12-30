@@ -10,6 +10,8 @@ import {
 } from 'typeorm';
 import { CloudinaryFile } from '../cloudinary-response';
 import { CommentEntity } from 'src/comment/entities/comment.entity';
+import { PostEntity } from 'src/post/entities/post.entity';
+import MessageEntity from 'src/conversation/entities/message.entity';
 
 export type TResourceType = 'video' | 'image' | 'raw';
 
@@ -56,6 +58,16 @@ export class AttachmentEntity {
     cascade: true,
   })
   comment: CommentEntity;
+
+  @ManyToOne(() => PostEntity, (post) => post.attachment, {
+    cascade: true,
+  })
+  post: PostEntity;
+
+  @ManyToOne(() => MessageEntity, (message) => message.attachment, {
+    cascade: true,
+  })
+  message: MessageEntity;
 
   // @Column({ default: null, nullable: true })
   // height: number;

@@ -29,7 +29,8 @@ export class CommentService {
     createCommentDto: CreateCommentDto,
     postId: string,
   ) {
-    const { attachment, text } = createCommentDto;
+    const { attachment, text, info } = createCommentDto;
+    console.log('comment info:', info);
     // cloudinary.config({
     //   // cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
     //   // api_key: process.env.CLOUDINARY_API_KEY,
@@ -68,14 +69,9 @@ export class CommentService {
         'comment',
         comment.id,
       );
-      // comment.attachment = attach
       comment.attachment = attachments;
-      // if(attachment.resource_type === 'image') {
-      // }
-      // comment.attachment = attachment
-      // const uploadedFile = await this.cloudinaryService.uploadFile(attachment);
-      // comment.attachment = uploadedFile.secure_url;
     }
+
     await this.commentRepository.save(comment);
     post.commentsCount++;
     await this.postRepository.save(post);
@@ -130,24 +126,54 @@ export class CommentService {
       comment.likesCount++;
       const res = await this.commentRepository.save(comment);
 
-      res.likes = [like];
-      return res;
+      // res.likes = [like];
+      // return res;
+    } else {
+      await this.likeRepository.delete({ id: likeExist.id });
+      comment.likesCount--;
+      const res = await this.commentRepository.save(comment);
     }
-    await this.likeRepository.delete({ id: likeExist.id });
-    comment.likesCount--;
-    const res = await this.commentRepository.save(comment);
-    res.likes = [];
-    return res;
-  }
-
-  async getCommentById(commentId: string) {}
-  async getCommentsByPostId(postId: string) {
+    // res.likes = [];
+    // return res;
     return await this.commentRepository
       .createQueryBuilder('comment')
       .leftJoinAndSelect('comment.user', 'user')
+      .leftJoinAndSelect('user.followers', 'u', 'u.fromUser = :id', {
+        id: currentUserId,
+      })
+      .leftJoinAndSelect('comment.likes', 'l', 'l.user.id = :id', {
+        id: currentUserId,
+      })
+      .leftJoinAndSelect('comment.attachment', 'attachment')
+      .where('comment.id = :commentId', { commentId })
+      .getOne();
+  }
+
+  async getCommentById(commentId: string) {}
+  async getCommentsByPostId(
+    postId: string,
+    currentUserId: string,
+    pageParam: string,
+  ) {
+    const limit = 10;
+    const currentPage = +pageParam;
+    const skip = currentPage * limit;
+    console.log('IMPORTANT -------------', currentPage, skip);
+    return await this.commentRepository
+      .createQueryBuilder('comment')
+      .leftJoinAndSelect('comment.user', 'user')
+      // .leftJoinAndSelect('comment.likes', 'likes')
+      .leftJoinAndSelect('user.followers', 'u', 'u.fromUser = :id', {
+        id: currentUserId,
+      })
+      .leftJoinAndSelect('comment.likes', 'l', 'l.user.id = :id', {
+        id: currentUserId,
+      })
       .leftJoinAndSelect('comment.attachment', 'attachment')
       .where('comment.post.id = :postId', { postId })
       .orderBy('comment.createdAt', 'DESC')
+      .take(limit)
+      .skip(skip)
       .getMany();
   }
   async getAllComments() {

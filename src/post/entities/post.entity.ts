@@ -13,10 +13,11 @@ import {
 import { LikeToPostEntity } from './like.entity';
 import { HashtagEntity } from './hashtag.entity';
 import { BookmarkEntity } from './bookmark.entity';
+import { AttachmentEntity } from 'src/cloudinary/entities/attachment.entity';
 
 @Entity('post')
 export class PostEntity extends Base {
-  @Column()
+  @Column({ default: null, nullable: true })
   text: string;
 
   @ManyToOne(() => UserEntity, (user) => user.posts)
@@ -47,4 +48,7 @@ export class PostEntity extends Base {
 
   @Column({ name: 'bookmarks_count', default: 0 })
   bookmarksCount: number;
+
+  @OneToMany(() => AttachmentEntity, (attach) => attach.post)
+  attachment: AttachmentEntity[];
 }

@@ -17,7 +17,8 @@ import { AppController } from './app.controller';
 import { UserEntity } from './user/entities/user.entity';
 import { HashtagEntity } from './post/entities/hashtag.entity';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
-
+import { WebsocketModule } from './websocket/websocket.module';
+import { EventEmitterModule } from '@nestjs/event-emitter';
 @Module({
   imports: [
     UserModule,
@@ -44,6 +45,8 @@ import { CloudinaryModule } from './cloudinary/cloudinary.module';
     ConversationModule,
     TypeOrmModule.forFeature([UserEntity, HashtagEntity]),
     CloudinaryModule,
+    WebsocketModule,
+    EventEmitterModule.forRoot(),
   ],
   controllers: [AppController],
   providers: [

@@ -9,6 +9,7 @@ import { LikeToPostEntity } from './entities/like.entity';
 import { SubscriptionEntity } from 'src/user/entities/subscription.entity';
 import { HashtagEntity } from './entities/hashtag.entity';
 import { BookmarkEntity } from './entities/bookmark.entity';
+import { CloudinaryService } from 'src/cloudinary/cloudinary.service';
 
 @Injectable()
 export class PostService {
@@ -25,6 +26,7 @@ export class PostService {
     private readonly hashtagRepository: Repository<HashtagEntity>,
     @InjectRepository(BookmarkEntity)
     private readonly bookmarkRepository: Repository<BookmarkEntity>,
+    private cloudinaryService: CloudinaryService,
   ) {}
 
   async likePost(currentUserId: string, postId: string) {
@@ -43,34 +45,35 @@ export class PostService {
     });
 
     if (!likeExist) {
-      // await this.likeRepository.save({
-      //   post: { id: postId },
-      //   user: { id: currentUserId },
-      // });
       const s = await this.likeRepository.save(data);
       post.likesCount++;
-      // post.likes.push(s);
       await this.postRepository.save(post);
-      post.likes = [s];
-      return post;
+    } else {
+      await this.likeRepository.delete({ id: likeExist.id });
+      post.likesCount--;
+      await this.postRepository.save(post);
     }
-
-    await this.likeRepository.delete({ id: likeExist.id });
-    post.likesCount--;
-    await this.postRepository.save(post);
-    post.likes = [];
-    return post;
+    return await this.getPostWith(currentUserId, postId);
   }
 
-  async getProfilePosts(currentUserId: string, userName: string) {
+  async getProfilePosts(
+    currentUserId: string,
+    userName: string,
+    pageParam: string,
+  ) {
     // if (!userName.startsWith('@')) userName = '@' + userName;
     const user = await this.userRepository.findOne({
       where: { userName },
     });
     if (!user) return new BadRequestException('user not found');
+
+    const limit = 10;
+    const currentPage = +pageParam;
+    const skip = currentPage * limit;
     const posts = await this.postRepository
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user')
+      .leftJoinAndSelect('post.attachment', 'attachment')
       .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :likeId', {
         likeId: currentUserId,
       })
@@ -82,100 +85,30 @@ export class PostService {
       })
       .where('user.userName = :userName', { userName })
       .orderBy('post.createdAt', 'DESC')
+      .take(limit)
+      .skip(skip)
       .getMany();
     return posts;
   }
 
-  async getProfilePostsWithLikes(currentUserId: string, userName: string) {
+  async getProfilePostsWithLikes(
+    currentUserId: string,
+    userName: string,
+    pageParam: string,
+  ) {
     // if (!userName.startsWith('@')) userName = '@' + userName;
     const user = await this.userRepository.findOne({
       where: { userName },
     });
     if (!user) return new BadRequestException('user not found');
-    // const posts = await this.likeRepository
-    //   .createQueryBuilder('like')
-    //   .leftJoinAndSelect('like.post', 'post')
-    //   .leftJoin('like.user', 'user')
+    const limit = 10;
+    const currentPage = +pageParam;
+    const skip = currentPage * limit;
 
-    //   .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :id', {
-    //     id: user.id,
-    //   })
-    //   .leftJoinAndSelect('post.bookmarks', 'b', 'b.user.id = :id', {
-    //     id: user.id,
-    //   })
-    //   .leftJoinAndSelect('user.followers', 'u', 'u.following = :id', {
-    //     id: user.id,
-    //   })
-    //   .where('user.userName = :userName', { userName })
-    //   .getMany();
-    // const posts = await this.postRepository
-    //   .createQueryBuilder('post')
-    //   // .leftJoin('post.likes', 'like')
-    //   .leftJoinAndSelect('post.user', 'user')
-    //   .innerJoinAndSelect('post.likes', 'l', 'l.user.id = :id', {
-    //     id: user.id,
-    //   })
-    // .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :id', {
-    //   id: user.id,
-    // })
-    // .leftJoinAndSelect('l.user', 'pp')
-    // .leftJoinAndSelect('post.bookmarks', 'b', 'b.user.id = :id', {
-    //   id: currentUserId,
-    // })
-    // .leftJoinAndSelect('user.followers', 'u', 'u.fromUser = :id', {
-    //   id: currentUserId,
-    // })
-    // .where('user.userName = :userName', { userName })
-    // .where('like.user.userName = :userName', { userName })
-    // .where((qb) => {
-    //   const query = qb
-    //     .subQuery()
-    //     .select('like.post.id')
-    //     .from(LikeToPostEntity, 'like')
-    //     .where('like.user.id = :id', { id: user.id })
-    //     .getQuery();
-    //   return 'post.id IN ' + query;
-    // })
-    // .orderBy('post.createdAt', 'DESC')
-    //   // .groupBy('post.id')
-    // .getMany();
-    // const posts = await this.postRepository
-    //   .createQueryBuilder('post')
-    //   .leftJoin('post.likes', 'like')
-    //   .select(['post', 'like'])
-    //   .where((qb) => {
-    //     const query = qb
-    //       .subQuery()
-    //       .select('like.post.id')
-    //       .from(LikeToPostEntity, 'like')
-    //       .where('like.user.id = :id', { id: user.id })
-    //       .getQuery();
-    //     return 'post.id IN ' + query;
-    //   })
-    //   // .groupBy('post.id, like.id')
-    //   // .getRawMany();
-    //   .getMany();
-    // const isLiked = await this.likeRepository.findOne({where: {user: {id: currentUserId}, post: {id: post.id}}})
-
-    // const likes = await this.likeRepository.find({
-    //   where: { user: { userName } },
-    //   relations: ['post'],
-    // });
-    // const likes = await // .getMany();
-    // this.likeRepository
-    //   .createQueryBuilder('like')
-    //   .leftJoin('like.post', 'post')
-    //   .leftJoin('like.user', 'user')
-    //   .select('post.id')
-    //   .where('user.id = :id', { id: user.id })
-    //   // .orderBy('post.id')
-    //   // .getRawMany();
-    //   // .subQuery
-    //   .getQuery();
-    // const ll = likes.map((el) => el.post.id);
     const posts = await this.postRepository
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user')
+      .leftJoinAndSelect('post.attachment', 'attachment')
       .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :likeId', {
         likeId: currentUserId,
       })
@@ -195,6 +128,8 @@ export class PostService {
             .where('like.user.id = :userId', { userId: user.id })
             .getQuery(),
       )
+      .take(limit)
+      .skip(skip)
       .getMany();
     return posts;
   }
@@ -214,19 +149,33 @@ export class PostService {
     //   text: createPostDto.text,
     //   user: { id: currentUserId },
     // });
-    const { hashtags, text } = createPostDto;
+    const { info, text, attachment } = createPostDto;
+    if (!info && (!text || text.length === 0) && attachment.length === 0)
+      return new BadRequestException();
     const post = this.postRepository.create({
-      text: text,
       user: { id: currentUserId },
     });
-    // if (createPostDto.hashtags.length > 0) {
-    // createPostDto.hashtags.forEach(async (el) => {
-    //   const tag = await this.hashtagRepository.findOne({
-    //     where: { name: el },
+    const { hashtags, mentions } = info;
+    // if (hashtags.length > 0) {
+    //   hashtags.forEach(async (el) => {
+    //     const tag = await this.hashtagRepository.findOne({
+    //       where: { name: el },
+    //     });
+    //     if (tag) post.tags;
     //   });
-    //   if (tag) post.tags;
-    // });
     // }
+    if (text) {
+      post.text = text;
+    }
+    if (attachment && attachment.length > 0) {
+      const attachments = await this.cloudinaryService.createAttachment(
+        attachment,
+        'post',
+        post.id,
+      );
+      post.attachment = attachments;
+    }
+
     const tags = await Promise.all(
       hashtags.map(async (name) => {
         const tag = await this.hashtagRepository.findOne({ where: { name } });
@@ -236,7 +185,25 @@ export class PostService {
     );
 
     post.tags = tags;
-    return await this.postRepository.save(post);
+    const s = await this.postRepository.save(post);
+
+    const p = await this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.user', 'user')
+      .leftJoinAndSelect('post.attachment', 'attachment')
+      .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :id', {
+        id: currentUserId,
+      })
+      .leftJoinAndSelect('post.bookmarks', 'b', 'b.user.id = :id', {
+        id: currentUserId,
+      })
+      .leftJoinAndSelect('user.followers', 'u', 'u.fromUser = :id', {
+        id: currentUserId,
+      })
+      .where('post.id = :postId', { postId: s.id })
+      .getOne();
+
+    return p;
   }
   async createTag(name: string): Promise<HashtagEntity> {
     const tag = this.hashtagRepository.create({ name });
@@ -274,7 +241,7 @@ export class PostService {
 
     return await this.postRepository.save(post);
   }
-  async getFollowingPosts(userId: string) {
+  async getFollowingPosts(userId: string, pageParam: string) {
     // const followingIds = await this.userRepository
     //   .createQueryBuilder('user')
     //   .leftJoin('user.following', 'following')
@@ -304,9 +271,14 @@ export class PostService {
     // `exists (${builder.getQuery()})`;
     // console.time('post');
     // .leftJoin('post.likes', 'like', 'like')
+    const limit = 10;
+    const currentPage = +pageParam;
+    const skip = currentPage * limit;
+    console.log('LIMIT', limit, currentPage, skip);
     const post = await this.postRepository
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user')
+      .leftJoinAndSelect('post.attachment', 'attachment')
       .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :id', {
         id: userId,
       })
@@ -316,6 +288,7 @@ export class PostService {
       .leftJoinAndSelect('user.followers', 'u', 'u.fromUser = :id', {
         id: userId,
       })
+
       .where((qb) => {
         const s = qb
           .subQuery()
@@ -323,10 +296,16 @@ export class PostService {
           .from(SubscriptionEntity, 'sub')
           .where('sub.fromUser.id = :id', { id: userId })
           .getQuery();
+        // console.log('HERE QUERIES DPSDLASDPLASLD', s);
         return 'user.id IN ' + s;
       })
+      .orWhere('user.id = :id', { id: userId })
+      // .andWhere('user.id = :currentUserId', { currentUserId: userId })
       .orderBy('post.createdAt', 'DESC')
+      .take(limit)
+      .skip(skip)
       .getMany();
+    console.log(post);
     // .groupBy('post.id, user.id, l.id')
     // .loadRelationCountAndMap('post.likesCount', 'post.likes')
     // .loadRelationCountAndMap('post.commentsCount', 'post.comments')
@@ -368,7 +347,8 @@ export class PostService {
 
     const post = await this.postRepository
       .createQueryBuilder('post')
-      .leftJoinAndSelect('post.comments', 'comments')
+      // .leftJoinAndSelect('post.comments', 'comments')
+      .leftJoinAndSelect('post.attachment', 'attachment')
       .leftJoinAndSelect('post.user', 'user')
       .leftJoinAndSelect('post.tags', 'tags')
       .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :likeId', {
@@ -413,25 +393,33 @@ export class PostService {
       const b = await this.bookmarkRepository.save(data);
       post.bookmarksCount++;
       await this.postRepository.save(post);
-      post.bookmarks = [b];
-      return post;
+      // post.bookmarks = [b];
+      // return post;
+    } else {
+      await this.bookmarkRepository.delete({ id: bookmarkExist.id });
+      post.bookmarksCount--;
+      await this.postRepository.save(post);
     }
-    await this.bookmarkRepository.delete({ id: bookmarkExist.id });
-    post.bookmarksCount--;
-    await this.postRepository.save(post);
-    post.bookmarks = [];
-    return post;
+
+    return await this.getPostWith(currentUserId, postId);
+    // post.bookmarks = [];
+    // return post;
   }
 
-  async getBookmarks(currentUserId: string) {
+  async getBookmarks(currentUserId: string, pageParam: string) {
     // const bookmarks = await this.bookmarkRepository.find({
     //   relations: { post: true, user: true },
     // });
+    const limit = 10;
+    const currentPage = +pageParam;
+    const skip = currentPage * limit;
     const bookmarks = await this.bookmarkRepository
       .createQueryBuilder('mark')
       .leftJoin('mark.user', 'u')
       .leftJoinAndSelect('mark.post', 'post')
       .leftJoinAndSelect('post.user', 'user')
+
+      .leftJoinAndSelect('post.attachment', 'attachment')
       // .leftJoin('user.followers' , 'ff')
       .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :likeId', {
         likeId: currentUserId,
@@ -443,8 +431,28 @@ export class PostService {
         id: currentUserId,
       })
       .where('u.id = :currentUserId', { currentUserId })
+      .take(limit)
+      .skip(skip)
       .getMany();
     return bookmarks;
     // return 'getBookmarks';
   }
+
+  private getPostWith = async (currentUserId: string, postId: string) => {
+    return this.postRepository
+      .createQueryBuilder('post')
+      .leftJoinAndSelect('post.user', 'user')
+      .leftJoinAndSelect('post.attachment', 'attachment')
+      .leftJoinAndSelect('post.likes', 'l', 'l.user.id = :id', {
+        id: currentUserId,
+      })
+      .leftJoinAndSelect('post.bookmarks', 'b', 'b.user.id = :id', {
+        id: currentUserId,
+      })
+      .leftJoinAndSelect('user.followers', 'u', 'u.fromUser = :id', {
+        id: currentUserId,
+      })
+      .where('post.id = :postId', { postId })
+      .getOne();
+  };
 }
