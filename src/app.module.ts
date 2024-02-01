@@ -19,6 +19,8 @@ import { HashtagEntity } from './post/entities/hashtag.entity';
 import { CloudinaryModule } from './cloudinary/cloudinary.module';
 import { WebsocketModule } from './websocket/websocket.module';
 import { EventEmitterModule } from '@nestjs/event-emitter';
+import { PostEntity } from './post/entities/post.entity';
+// import { RedisModule } from '@nestjs-modules/ioredis';
 @Module({
   imports: [
     UserModule,
@@ -43,10 +45,24 @@ import { EventEmitterModule } from '@nestjs/event-emitter';
       inject: [ConfigService],
     }),
     ConversationModule,
-    TypeOrmModule.forFeature([UserEntity, HashtagEntity]),
+    TypeOrmModule.forFeature([UserEntity, HashtagEntity, PostEntity]),
     CloudinaryModule,
     WebsocketModule,
     EventEmitterModule.forRoot(),
+    // RedisModule.forRootAsync({
+    //   imports: [ConfigModule],
+    //   useFactory: (configService: ConfigService) => {
+    //     return {
+    //       type: 'single',
+    //       options: {
+    //         host: 'redis-18758.c274.us-east-1-3.ec2.cloud.redislabs.com',
+    //         port: 18758,
+    //         password: configService.get('REDIS_PASSWORD'),
+    //       },
+    //     };
+    //   },
+    //   inject: [ConfigService],
+    // }),
   ],
   controllers: [AppController],
   providers: [

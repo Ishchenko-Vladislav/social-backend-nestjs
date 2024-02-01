@@ -82,6 +82,7 @@ export class CommentService {
       relations: {
         user: true,
         attachment: true,
+        post: true,
       },
     });
     return response;

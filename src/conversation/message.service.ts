@@ -45,6 +45,18 @@ export class MessageService {
         messageId: message.id,
       })
       .getOne();
+    // const msg = await this.messageRepository.findOne({
+    //   where: {
+    //     id: message.id,
+    //   },
+    //   relations: {
+    //     attachment: true,
+    //     user: true,
+    //     conversation: {
+    //       users: true,
+    //     },
+    //   },
+    // });
     return msg;
   }
 
@@ -54,7 +66,7 @@ export class MessageService {
     });
     if (!conversation) throw new BadRequestException('You cannot access');
     // return conversation;
-    const limit = 20;
+    const limit = 50;
     // const currentPage = +pageParam;
     // const skip = currentPage * limit;
 
@@ -79,5 +91,9 @@ export class MessageService {
 
     // });
     return messages;
+  }
+
+  async markAsReadMessage(messageId: string) {
+    return await this.messageRepository.update(messageId, { read: true });
   }
 }

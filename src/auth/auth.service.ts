@@ -92,6 +92,19 @@ export class AuthService {
       throw new UnauthorizedException();
     }
   }
+  async verifyAccessJwtToken(token: string): Promise<IJwtPayload> {
+    console.log('token', token);
+    try {
+      const decoded = await this.jwtService.verifyAsync(token, {
+        secret: await this.configService.get('JWT_SECRET'),
+      });
+      return decoded;
+    } catch (error) {
+      console.log('HERE ALL TIME ERROR', error);
+
+      throw new UnauthorizedException();
+    }
+  }
 
   private async getNewTokens(payload: IJwtPayload) {
     const [at, rt] = await Promise.all([

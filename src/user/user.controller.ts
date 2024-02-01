@@ -12,6 +12,7 @@ import {
   Request,
   Req,
   Query,
+  Put,
 } from '@nestjs/common';
 import { UserService } from './user.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -35,6 +36,14 @@ export class UserController {
     @Param('recipientId') recipientId: string,
   ) {
     return this.userService.subscribeToUser(req.user.id, recipientId);
+  }
+  @Put('update')
+  updateProfile(
+    @Req() req: AuthenticatedRequest,
+    @Body() updateUserDto: UpdateUserDto,
+  ) {
+    console.log('HRERE DATA TO UPDATE', updateUserDto);
+    return this.userService.updateProfile(req.user.id, updateUserDto);
   }
 
   // @UseGuards(JwtAuthGuard)

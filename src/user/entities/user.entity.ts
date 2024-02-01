@@ -16,6 +16,7 @@ import { CommentEntity } from 'src/comment/entities/comment.entity';
 import { LikeToCommentEntity } from 'src/comment/entities/like.entity';
 import { LikeToPostEntity } from 'src/post/entities/like.entity';
 import { BookmarkEntity } from 'src/post/entities/bookmark.entity';
+import { LowAttach } from '../dto/update-user.dto';
 
 @Entity('user')
 export class UserEntity extends Base {
@@ -37,8 +38,11 @@ export class UserEntity extends Base {
   @OneToMany(() => PostEntity, (post) => post.user)
   posts: PostEntity[];
 
-  @Column({ name: 'avatar_path', nullable: true })
-  avatarPath: string;
+  @Column({ name: 'avatar_path', nullable: true, default: null, type: 'json' })
+  avatarPath: LowAttach;
+
+  @Column({ name: 'bg_path', nullable: true, default: null, type: 'json' })
+  bgPath: LowAttach;
 
   @OneToMany(
     () => SubscriptionEntity,

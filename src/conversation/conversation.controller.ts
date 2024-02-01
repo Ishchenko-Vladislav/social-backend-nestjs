@@ -39,9 +39,10 @@ export class ConversationController {
   @Get('me')
   getConversation(
     @Req() req: AuthenticatedRequest,
-    @Query('pageParam') pageParam: string,
+    @Query('skip') skip: string,
+    @Query('take') take: string,
   ) {
-    return this.conversationService.getConversation(req.user.id, pageParam);
+    return this.conversationService.getConversation(req.user.id, skip, take);
   }
 
   @Post('create/:id')

@@ -213,6 +213,47 @@ export class UserService {
     });
   }
 
+  async updateProfile(userId: string, updateUserDto: UpdateUserDto) {
+    const user = await this.userRepository.findOne({
+      where: {
+        id: userId,
+      },
+    });
+    if (updateUserDto.userName) {
+      user.userName = updateUserDto.userName;
+    }
+    // if (updateUserDto.userName) {
+    //   const exist = await this.userRepository.findOne({
+    //     where: {
+    //       userName: updateUserDto.userName,
+    //     },
+    //   });
+    //   if (exist) {
+    //     return new BadRequestException('User with this username already exist');
+    //   }
+    //   user.userName = updateUserDto.userName;
+    // }
+
+    if (updateUserDto.displayName) {
+      user.displayName = updateUserDto.displayName;
+    }
+
+    if (updateUserDto.avatarPath) {
+      user.avatarPath = updateUserDto.avatarPath;
+    }
+    if (updateUserDto.bgPath) {
+      user.bgPath = updateUserDto.bgPath;
+    }
+
+    try {
+      return await this.userRepository.save(user);
+    } catch (error) {
+      return new BadRequestException();
+    }
+
+    // return await ;
+  }
+
   // async statusIsSubscription(currentUserId: string, userId: string) {
   //   // const isExist = await this.userRepository.createQueryBuilder('user')
   //   // .where('user.id = :id', {id: currentUserId})

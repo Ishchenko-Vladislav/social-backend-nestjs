@@ -1,9 +1,15 @@
 import { Injectable } from '@nestjs/common';
 import { CreateWebsocketDto } from './dto/create-websocket.dto';
 import { UpdateWebsocketDto } from './dto/update-websocket.dto';
+import { MessageService } from 'src/conversation/message.service';
 
 @Injectable()
 export class WebsocketService {
+  constructor(private messageService: MessageService) {}
+
+  async markAsRead(messageId: string) {
+    return await this.messageService.markAsReadMessage(messageId);
+  }
   create(createWebsocketDto: CreateWebsocketDto) {
     return 'This action adds a new websocket';
   }

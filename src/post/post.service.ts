@@ -274,7 +274,7 @@ export class PostService {
     const limit = 10;
     const currentPage = +pageParam;
     const skip = currentPage * limit;
-    console.log('LIMIT', limit, currentPage, skip);
+    // console.log('LIMIT', limit, currentPage, skip);
     const post = await this.postRepository
       .createQueryBuilder('post')
       .leftJoinAndSelect('post.user', 'user')
@@ -305,7 +305,7 @@ export class PostService {
       .take(limit)
       .skip(skip)
       .getMany();
-    console.log(post);
+    // console.log(post);
     // .groupBy('post.id, user.id, l.id')
     // .loadRelationCountAndMap('post.likesCount', 'post.likes')
     // .loadRelationCountAndMap('post.commentsCount', 'post.comments')

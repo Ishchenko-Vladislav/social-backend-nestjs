@@ -31,7 +31,11 @@ export class ConversationService {
     );
 
     if (conversationExist)
-      throw new BadRequestException('This chat already exists');
+      return await this.conversationById(conversationExist.id);
+    // throw new BadRequestException({
+    //   status: 'exist',
+    //   message: 'This chat already exists',
+    // });
 
     const conversation = await this.conversationRepository.save({
       users: [
@@ -44,18 +48,22 @@ export class ConversationService {
       ],
       type: 'private',
     });
-    return conversation;
+
+    const conv = await this.conversationById(conversation.id);
+    return conv;
   }
 
-  async getConversation(userId: string, pageParam: string) {
+  async getConversation(userId: string, skip: string, take: string) {
     // const conversation = await this.conversationRepository
     //   .createQueryBuilder('conversation')
     //   .leftJoinAndSelect('conversation.users', 'user')
     //   .where('user.id = :creatorId', { creatorId: id })
     //   .getMany();
-    const limit = 30;
-    const currentPage = +pageParam;
-    const skip = currentPage * limit;
+    // const limit = 30;
+    // const currentPage = +pageParam;
+    // const skip = currentPage * limit;
+    const skip_param = parseInt(skip);
+    const take_param = parseInt(take);
     const conversation = await this.conversationRepository
       .createQueryBuilder('conversation')
       .innerJoin('conversation.users', 'user', 'user.id = :userId', {
@@ -63,9 +71,10 @@ export class ConversationService {
       })
       .leftJoinAndSelect('conversation.users', 'users')
       .leftJoinAndSelect('conversation.lastMessageSent', 'lastMessageSent')
+      .leftJoinAndSelect('lastMessageSent.user', 'lastMessageSentUser')
       .orderBy('conversation.updatedAt', 'DESC')
-      .take(limit)
-      .skip(skip)
+      .take(take_param)
+      .skip(skip_param)
       .getMany();
 
     return conversation;
@@ -82,15 +91,19 @@ export class ConversationService {
     //   .andWhere('conversation.type = :type', { type: 'private' })
     //   .having('COUNT(DISTINCT users.id) = 2')
     //   .getMany();
-    const conversation = await this.conversationRepository
-      .createQueryBuilder('con')
-      .leftJoinAndSelect('con.users', 'users')
-      .leftJoinAndSelect('con.lastMessageSent', 'lastMessageSent')
-      .where('con.id = :conversationId', { conversationId })
-      .getOne();
+    const conversation = this.conversationById(conversationId);
     if (!conversation)
       return new BadRequestException('this conversation does not exist');
     return conversation;
+  }
+  async conversationById(conversationId: string) {
+    return await this.conversationRepository
+      .createQueryBuilder('con')
+      .leftJoinAndSelect('con.users', 'users')
+      .leftJoinAndSelect('con.lastMessageSent', 'lastMessageSent')
+      .leftJoinAndSelect('lastMessageSent.user', 'lastMessageSentUser')
+      .where('con.id = :conversationId', { conversationId })
+      .getOne();
   }
   async getConversationWith(currentUserId: string, recipientId: string) {
     // const conversation = await this.conversationRepository
